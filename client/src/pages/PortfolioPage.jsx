@@ -14,9 +14,18 @@ function ShieldRow({ shield, prices, onSettle }) {
   const entryPrice = shield.entryPrice;
   const exposure = shield.exposureBudget || 0;
 
-  const pnl = livePrice && entryPrice
-    ? ((livePrice - entryPrice) / entryPrice) * exposure
-    : (shield.positionId?.unrealizedPnl ?? 0);
+  // PnL is mark-to-market of the *yield-derived exposure budget*, NEVER the
+  // principal. Clamp to ±exposure so a degenerate stored entryPrice (e.g.
+  // 1.0 from an earlier run before the price feed was live) can't surface as a
+  // fantasy return. Skip mark-to-market entirely if entryPrice looks bogus.
+  const ENTRY_PRICE_FLOOR = 0.5; // any asset below $0.50 is invalid for our universe
+  let pnl;
+  if (livePrice && entryPrice && entryPrice >= ENTRY_PRICE_FLOOR) {
+    const raw = ((livePrice - entryPrice) / entryPrice) * exposure;
+    pnl = Math.max(-exposure, Math.min(exposure, raw));
+  } else {
+    pnl = shield.positionId?.unrealizedPnl ?? 0;
+  }
 
   const deposit = shield.depositAmount || 0;
   const pnlPct = deposit > 0 ? (pnl / deposit) * 100 : 0;
