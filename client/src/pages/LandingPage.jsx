@@ -79,29 +79,73 @@ function useAgentFeed() {
   return rows;
 }
 
-/* ---------- Code block (JSON syntax-tinted by hand) ---------- */
-function HeroCodeBlock() {
-  const [copied, setCopied] = useState(false);
-  const body = useMemo(
-    () =>
-      JSON.stringify(
-        {
-          deposit_usdc: 10000,
-          horizon_days: 180,
-          risk: "conservative",
-          assets: ["gold", "ethereum", "re_nyc"],
-          attest: true,
-        },
-        null,
-        2
-      ),
-    []
+/* ---------- Interactive agent terminal (real API call to /api/ai/recommend-shield) ---------- */
+const PRESETS = [
+  "I am worried about inflation eating my savings.",
+  "I want a 3-month hedge on the price of gold.",
+  "Housing in Miami keeps going up. I want exposure.",
+  "Solana has momentum and I can lock $200 for 30 days.",
+  "Crude oil is volatile but I expect a runup over 3 months.",
+];
+
+function AgentTerminal() {
+  const [concern, setConcern] = useState(PRESETS[0]);
+  const [deposit, setDeposit] = useState(500);
+  const [duration, setDuration] = useState(3);
+  const [slug, setSlug] = useState("inflation-hedger");
+  const [bearer, setBearer] = useState("");
+  const [response, setResponse] = useState(null);
+  const [elapsed, setElapsed] = useState(null);
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const apiBase =
+    (typeof window !== "undefined" ? window.location.origin : "") ||
+    "https://aegis.0g.ai";
+  const bearerDisplay = bearer.trim() ? `Bearer ${bearer.trim()}` : "(omitted — public demo mode)";
+
+  const requestPreview = useMemo(
+    () => JSON.stringify({ concern, depositAmount: Number(deposit) || 0, durationMonths: Number(duration) || 0 }, null, 2),
+    [concern, deposit, duration],
   );
-  const onCopy = () => {
-    navigator.clipboard?.writeText(body);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1400);
-  };
+
+  async function send() {
+    setBusy(true);
+    setError(null);
+    setResponse(null);
+    setElapsed(null);
+    const t0 = performance.now();
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (bearer.trim()) {
+        headers["Authorization"] = "Bearer " + bearer.trim();
+        headers["X-Agent-Slug"] = slug;
+        headers["X-Agent-Model"] = "landing-page-terminal";
+        headers["X-Agent-Name"] = "Aegis Hero Demo";
+      }
+      const res = await fetch(apiBase + "/api/ai/recommend-shield", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ concern, depositAmount: Number(deposit) || 0, durationMonths: Number(duration) || 0 }),
+      });
+      const text = await res.text();
+      let j;
+      try { j = JSON.parse(text); } catch { j = { raw: text }; }
+      setElapsed(Math.round(performance.now() - t0));
+      if (!res.ok) throw new Error(j?.error || `HTTP ${res.status}`);
+      setResponse(j.recommendation || j);
+    } catch (e) {
+      setError(e?.message || String(e));
+    }
+    setBusy(false);
+  }
+
+  // Auto-fire once on mount so the terminal has visible context immediately.
+  useEffect(() => {
+    send();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div
       className="relative font-mono text-[12px] leading-[1.55] text-[var(--t-text)]"
@@ -118,63 +162,141 @@ function HeroCodeBlock() {
         <span className="h-2 w-2 rounded-full bg-[#3A3A55]" />
         <span className="h-2 w-2 rounded-full bg-[#3A3A55]" />
         <span className="ml-2 text-[10px] uppercase tracking-[0.18em] text-[var(--t-text-dim)]">
-          request.http
+          aegis.terminal . live
         </span>
         <span className="ml-auto text-[10px] text-[var(--t-text-dim)]">
-          200 OK . 41ms . tee:0g-compute-eu-1
+          {busy
+            ? <span className="text-[var(--t-amber)]">running…</span>
+            : error
+              ? <span className="text-[var(--t-red)]">error</span>
+              : response
+                ? <span className="text-[var(--t-cyan)]">200 OK . {elapsed}ms . provider={response.providerUsed || "?"}{response.teeVerified ? " . tee✓" : ""}</span>
+                : <span>idle</span>}
         </span>
       </div>
 
-      {/* request line */}
-      <div className="px-5 pt-4">
-        <span className="text-[var(--t-cyan)]">POST</span>
-        <span className="text-[var(--t-text)]">
-          {" "}https://api.aegis.0g/v1/ai/recommend-shield
-        </span>
-      </div>
-      <div className="px-5 text-[var(--t-text-muted)]">
-        Authorization:{" "}
-        <span className="text-[var(--t-violet)]">
-          Bearer ak_live_a7c91f.session
-        </span>
-      </div>
-      <div className="px-5 pb-2 text-[var(--t-text-muted)]">
-        Content-Type: <span className="text-[var(--t-text)]">application/json</span>
+      {/* Inputs */}
+      <div className="px-5 pt-4 space-y-3">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)] mb-1">concern</div>
+          <textarea
+            value={concern}
+            onChange={(e) => setConcern(e.target.value)}
+            rows={2}
+            className="w-full resize-none rounded-md border border-[var(--t-border)] bg-[var(--t-bg)] px-3 py-2 text-[12px] text-[var(--t-text)] outline-none focus:border-[var(--t-violet)]"
+            spellCheck={false}
+          />
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {PRESETS.map((p, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setConcern(p)}
+                className="rounded-md border border-[var(--t-border)] bg-[var(--t-panel-elev)] px-2 py-0.5 text-[10px] text-[var(--t-text-muted)] hover:border-[var(--t-violet)] hover:text-[var(--t-violet)]"
+              >
+                {p.slice(0, 32)}{p.length > 32 ? "…" : ""}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)] mb-1">deposit (A-USDC)</div>
+            <input
+              type="number" min={1}
+              value={deposit}
+              onChange={(e) => setDeposit(e.target.value)}
+              className="w-full rounded-md border border-[var(--t-border)] bg-[var(--t-bg)] px-2 py-1.5 text-[12px] tabular-nums outline-none focus:border-[var(--t-violet)]"
+            />
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)] mb-1">duration (months)</div>
+            <input
+              type="number" min={1} max={12}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-full rounded-md border border-[var(--t-border)] bg-[var(--t-bg)] px-2 py-1.5 text-[12px] tabular-nums outline-none focus:border-[var(--t-violet)]"
+            />
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)] mb-1">agent slug</div>
+            <select
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="w-full rounded-md border border-[var(--t-border)] bg-[var(--t-bg)] px-2 py-1.5 text-[12px] outline-none focus:border-[var(--t-violet)]"
+            >
+              <option value="conservative-saver">conservative-saver</option>
+              <option value="inflation-hedger">inflation-hedger</option>
+              <option value="momentum-shield">momentum-shield</option>
+              <option value="balanced">balanced</option>
+              <option value="aggressive">aggressive</option>
+            </select>
+          </div>
+        </div>
+
+        <details className="text-[11px]">
+          <summary className="cursor-pointer text-[var(--t-text-muted)] hover:text-[var(--t-text)] list-none">
+            <span className="text-[var(--t-violet)]">▸</span> Optional: paste a session key (Aegis records this call against your wallet)
+          </summary>
+          <input
+            type="text"
+            value={bearer}
+            onChange={(e) => setBearer(e.target.value)}
+            placeholder="aegis_sk_…"
+            className="mt-2 w-full rounded-md border border-[var(--t-border)] bg-[var(--t-bg)] px-2 py-1.5 text-[11px] font-mono outline-none focus:border-[var(--t-violet)]"
+            spellCheck={false} autoComplete="off"
+          />
+        </details>
+
+        <button
+          type="button"
+          onClick={send}
+          disabled={busy || !concern.trim()}
+          className="t-btn t-btn-primary w-full justify-center disabled:opacity-50"
+        >
+          {busy ? "calling /api/ai/recommend-shield…" : "Send"}
+        </button>
       </div>
 
-      {/* body */}
-      <pre className="px-5 pb-4 text-[var(--t-text)] whitespace-pre">
+      {/* Request preview */}
+      <div className="mt-4 border-t border-[var(--t-border)] px-5 py-3 text-[11px]">
+        <div className="mb-1 text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)]">request</div>
+        <div><span className="text-[var(--t-cyan)]">POST</span> <span className="text-[var(--t-text)]">{apiBase}/api/ai/recommend-shield</span></div>
+        <div className="text-[var(--t-text-muted)]">Authorization: <span className="text-[var(--t-violet)]">{bearerDisplay}</span></div>
+        <div className="text-[var(--t-text-muted)]">Content-Type: <span className="text-[var(--t-text)]">application/json</span></div>
+        <pre className="mt-1 whitespace-pre text-[var(--t-text)]">{requestPreview}</pre>
+      </div>
+
+      {/* Response */}
+      <div className="border-t border-dashed border-[var(--t-border)] px-5 py-3 text-[11px]">
+        <div className="mb-1 text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)]">response</div>
+        {busy && <div className="text-[var(--t-text-muted)]">…</div>}
+        {error && <div className="text-[var(--t-red)]">error: {error}</div>}
+        {!busy && !error && response && (
+          <pre className="whitespace-pre-wrap text-[var(--t-text-muted)]">
 {`{
-  "deposit_usdc": `}<span className="text-[var(--t-cyan)]">10000</span>{`,
-  "horizon_days": `}<span className="text-[var(--t-cyan)]">180</span>{`,
-  "risk": `}<span className="text-[var(--t-violet)]">"conservative"</span>{`,
-  "assets": [`}<span className="text-[var(--t-violet)]">"gold"</span>{`, `}<span className="text-[var(--t-violet)]">"ethereum"</span>{`, `}<span className="text-[var(--t-violet)]">"re_nyc"</span>{`],
-  "attest": `}<span className="text-[var(--t-cyan)]">true</span>{`
+  asset:        `}<span className="text-[var(--t-violet)]">{JSON.stringify(response.asset)}</span>{`,
+  assetName:    `}<span className="text-[var(--t-text)]">{JSON.stringify(response.assetName || response.asset)}</span>{`,
+  reason:       `}<span className="text-[var(--t-text)]">{JSON.stringify(response.reason || "")}</span>{`,
+  providerUsed: `}<span className="text-[var(--t-cyan)]">{JSON.stringify(response.providerUsed || "?")}</span>{`,
+  teeVerified:  `}<span className={response.teeVerified ? "text-[var(--t-cyan)]" : "text-[var(--t-amber)]"}>{String(response.teeVerified === true)}</span>{`,
+  teeModel:     `}<span className="text-[var(--t-text-muted)]">{JSON.stringify(response.teeModel || null)}</span>{`
 }`}
-      </pre>
-
-      {/* response divider */}
-      <div className="border-t border-dashed border-[var(--t-border)] px-5 py-2 text-[10px] uppercase tracking-[0.18em] text-[var(--t-text-dim)]">
-        response . signed.envelope
+          </pre>
+        )}
       </div>
-      <pre className="px-5 pb-5 text-[var(--t-text-muted)] whitespace-pre">
-{`{
-  "shield_id":  `}<span className="text-[var(--t-violet)]">"shd_0x91ab.."</span>{`,
-  "floor_usdc": `}<span className="text-[var(--t-cyan)]">10000</span>{`,
-  "tee_sig":    `}<span className="text-[var(--t-violet)]">"0g.tee.v1:9f4e.."</span>{`,
-  "storage_cid":`}<span className="text-[var(--t-violet)]">"bafy..tte"</span>{`
-}`}
-      </pre>
 
-      <button
-        onClick={onCopy}
-        className="absolute right-3 top-2.5 rounded-md border border-[var(--t-border)] bg-[var(--t-panel-elev)] px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-muted)] transition-colors hover:border-[var(--t-violet)] hover:text-[var(--t-violet)]"
-      >
-        {copied ? "Copied" : "Copy"}
-      </button>
+      <div className="border-t border-[var(--t-border)] px-5 py-2.5 text-[10px] uppercase tracking-[0.16em] text-[var(--t-text-dim)] flex items-center justify-between">
+        <span>You just hit a live mainnet endpoint. No mocks.</span>
+        <a href="/app/shield" className="text-[var(--t-violet)] hover:underline normal-case tracking-normal">Open the Shield Builder →</a>
+      </div>
     </div>
   );
 }
+
+// Back-compat alias so call-sites keep working.
+const HeroCodeBlock = AgentTerminal;
 
 /* ---------- Asset name lookup (for the feed) ---------- */
 function assetMeta(id) {
