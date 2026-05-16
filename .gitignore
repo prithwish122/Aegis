@@ -50,6 +50,16 @@ tests-e2e/node_modules/
 tests-e2e/recordings/
 tests-e2e/last-mainnet-flow.json
 
+# Real-MetaMask recording scratch: the bundled MetaMask 13.13.1 extension files
+# and the per-run synpress cache. Re-downloadable; don't pollute git.
+tests-e2e/.cache-synpress/
+tests-e2e/.mm-profile/
+tests-e2e/.aegis-setup-compiled.mjs
+tests-e2e/test/
+tests-e2e/tests/
+tests-e2e/playwright.config.ts
+tests-e2e/synpress-build-cache.mjs
+
 # ─── Editor / OS ───────────────────────────────────────────────────────────
 .vscode/
 .idea/
