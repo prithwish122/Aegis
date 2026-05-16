@@ -1,0 +1,51 @@
+{
+  "networks": {
+    "baseSepolia": {
+      "network": "baseSepolia",
+      "label": "Base Sepolia (legacy)",
+      "chainId": "84532",
+      "explorer": "https://sepolia.basescan.org",
+      "deployer": "0x71AfE44200A819171a0687b1026E8d4424472Ff8",
+      "relayer": "0x71AfE44200A819171a0687b1026E8d4424472Ff8",
+      "deploymentTime": "2026-03-14T04:53:50.931Z",
+      "contracts": {
+        "husdc": {
+          "address": "0x17b9526493820C6EB04988433B9220B06e210a3e",
+          "name": "HedgeMyLife USD",
+          "symbol": "H-USDC",
+          "decimals": 6
+        },
+        "hedgeVault": {
+          "address": "0xc4220872C6b1Bc83dE46180B6F4Df42151567604",
+          "husdcToken": "0x17b9526493820C6EB04988433B9220B06e210a3e",
+          "relayer": "0x71AfE44200A819171a0687b1026E8d4424472Ff8"
+        }
+      },
+      "_note": "Original HedgeMyLife deployment. Aegis.0G port lives under ogTestnet / ogMainnet."
+    },
+    "ogTestnet": {
+      "network": "ogTestnet",
+      "label": "0G Galileo Testnet",
+      "chainId": "16602",
+      "explorer": "https://chainscan-galileo.0g.ai",
+      "deployer": "0x4523095f3d872dD51aAB5c6428b513AF645C15B5",
+      "relayer": "0x4523095f3d872dD51aAB5c6428b513AF645C15B5",
+      "deploymentTime": "2026-05-16T12:08:14.420Z",
+      "contracts": {
+        "ausdc": {
+          "address": "0xA3CD4843Fc8f2Af53fa4786b16F70c90BfecD2F2",
+          "name": "Aegis USD",
+          "symbol": "A-USDC",
+          "decimals": 6,
+          "txHash": "0x9185d0d7d1ee9107dc956cf0a79cacc8c9d6b55f4df14d43ae38274f43b06752"
+        },
+        "aegisVault": {
+          "address": "0x60403dd3CC683F65Db6dEb8597051aDc80506C3F",
+          "ausdcToken": "0xA3CD4843Fc8f2Af53fa4786b16F70c90BfecD2F2",
+          "relayer": "0x4523095f3d872dD51aAB5c6428b513AF645C15B5",
+          "txHash": "0x8458bf25e3f623688f2e3e59d21ade28254938499f47447886571d69f9bf4505"
+        }
+      }
+    }
+  }
+}
