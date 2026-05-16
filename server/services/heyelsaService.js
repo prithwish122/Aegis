@@ -22,7 +22,7 @@ function isConfigured() {
 
 async function init() {
   if (!isConfigured()) {
-    console.log('[HeyElsa] PAYMENT_PRIVATE_KEY not set — x402 APIs disabled (HedgeMyLife-only mode)');
+    console.log('[HeyElsa] PAYMENT_PRIVATE_KEY not set — x402 APIs disabled (local-only mode)');
     return;
   }
 

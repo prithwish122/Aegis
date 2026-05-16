@@ -1,10 +1,10 @@
-# Aegis.0G — Port of PPN.fi to the 0G Stack
+# Aegis.0G — Build on the 0G Stack
 
 **Design doc** — drafted 2026-05-16 for the 0G APAC Hackathon.
 
 ## 1. Goal
 
-Port the existing PPN.fi / HedgeMyLife principal-protected-yield-shield product from Base Sepolia to the 0G Labs stack (Aristotle mainnet, chain id `16661`) under a 4-hour build budget. Submission must satisfy the hackathon's mandatory checklist: a mainnet contract address, a chainscan link, demonstrable 0G integration (Storage + Compute + Chain), a public repo, a README, an OpenClaw skill, a demo video, and an X post.
+Build the principal-protected-yield-shield product on the 0G Labs stack (Aristotle mainnet, chain id `16661`) under a 4-hour build budget. Submission must satisfy the hackathon's mandatory checklist: a mainnet contract address, a chainscan link, demonstrable 0G integration (Storage + Compute + Chain), a public repo, a README, an OpenClaw skill, a demo video, and an X post.
 
 Brand: **Aegis.0G** — "The Principal-Protected Shield Agent on 0G".
 
@@ -83,7 +83,7 @@ Explicitly NOT in scope: perp engine, BitGo custody, ENS subnames, Twilio WhatsA
 
 ### 5.1 Contracts
 
-- `contracts/contracts/HedgeVault.sol` → `AegisVault.sol`. Keep all existing trader/LP/PnL functions; add `Shield` struct, `userShields` mapping, `createShield`, `settleShield`, `getShields`, `ShieldCreated` and `ShieldSettled` events.
+- `contracts/contracts/AegisVault.sol`. Keep all existing trader/LP/PnL functions; add `Shield` struct, `userShields` mapping, `createShield`, `settleShield`, `getShields`, `ShieldCreated` and `ShieldSettled` events.
   ```solidity
   struct Shield {
       uint128 depositAmount;
@@ -97,7 +97,7 @@ Explicitly NOT in scope: perp engine, BitGo custody, ENS subnames, Twilio WhatsA
       bool    settled;
   }
   ```
-- `contracts/contracts/HUSDC.sol` → `AUSDC.sol`. Rename token to `Aegis USD` / `A-USDC`; keep faucet + 1T mint.
+- `contracts/contracts/AUSDC.sol`. Token: `Aegis USD` / `A-USDC`; keep faucet + 1T mint.
 - `contracts/hardhat.config.js`. Add `ogTestnet` (16602) and `ogMainnet` (16661) network entries. Keep `baseSepolia`.
 - `contracts/scripts/deploy.js`. One script, network-agnostic; writes `deployment.json` under `networks.<name>`.
 - `contracts/test/AegisVault.test.js` **(NEW)**. Hardhat tests covering `createShield` debits A-USDC + emits event, and `settleShield` flips `settled` flag.
@@ -122,7 +122,7 @@ Explicitly NOT in scope: perp engine, BitGo custody, ENS subnames, Twilio WhatsA
 ### 5.4 Frontend rebrand + 0G wiring
 
 - `client/src/config/wagmi.js`. Rewrite: define `ogMainnet` (16661) and `ogTestnet` (16602) custom chain objects; switch default chain via `VITE_NETWORK=mainnet|testnet`.
-- `client/src/config/contracts.js`. Rename `HUSDC_ADDRESS` → `AUSDC_ADDRESS`, `VAULT_ADDRESS` → `AEGIS_VAULT_ADDRESS`. Extend `VAULT_ABI` with `createShield`, `getShields`, `userShields`, `ShieldCreated`, `ShieldSettled`. Add `EXPLORER_BASE` export.
+- `client/src/config/contracts.js`. Export `AUSDC_ADDRESS` and `AEGIS_VAULT_ADDRESS`. Extend `AEGIS_VAULT_ABI` with `createShield`, `getShields`, `userShields`, `ShieldCreated`, `ShieldSettled`. Add `EXPLORER_BASE` export.
 - `client/src/pages/YieldShieldPage.jsx`. Post-activation result panel: three badges — Chain (chainscan tx link), Storage (rootHash + `/api/yield-shield/doc/:rootHash` link), TEE Verified (provider address + signature head). Optional fourth INFT badge if stretch lands.
 - Visible rebrand across `Sidebar.jsx`, `LandingPage.jsx`, `RootLayout.jsx`, `index.html`, `package.json` `name`.
 - Hide perp routes in `Sidebar.jsx` (comment-out, do not delete).

@@ -1,7 +1,7 @@
 /**
  * Elsa AI Agent - Intent parsing and action routing
- * Bridges natural language (WhatsApp, REST) to HedgeMyLife + HeyElsa x402.
- * OpenClaw-style agent: maps intents to HedgeMyLife (perp, shield, vault) or HeyElsa (portfolio, yield, swap).
+ * Bridges natural language (WhatsApp, REST) to the dapp + HeyElsa x402.
+ * OpenClaw-style agent: maps intents to local actions (perp, shield, vault) or HeyElsa (portfolio, yield, swap).
  */
 
 const axios = require("axios");
@@ -659,7 +659,7 @@ async function executeIntent(intent, address, options = {}) {
           );
         }
 
-        // Local analysis using HedgeMyLife data
+        // Local analysis using local data
         const [positions, shields, user] = await Promise.all([
           tradeService.getOpenPositions(addr),
           yieldShieldEngine.getActiveShields(addr),
@@ -725,7 +725,7 @@ async function executeIntent(intent, address, options = {}) {
           const top = rates[0];
           return {
             success: true,
-            message: `HedgeMyLife Yield:\n${top.protocol} - ${top.vault}: ${top.currentApy}% APY\n\nCreate a Yield Shield to earn + hedge.`,
+            message: `Aegis Yield:\n${top.protocol} - ${top.vault}: ${top.currentApy}% APY\n\nCreate a Yield Shield to earn + hedge.`,
             data: rates,
           };
         }
@@ -735,7 +735,7 @@ async function executeIntent(intent, address, options = {}) {
           const top = rates[0];
           return {
             success: true,
-            message: `HedgeMyLife Yield:\n${top.protocol} - ${top.vault}: ${top.currentApy}% APY`,
+            message: `Aegis Yield:\n${top.protocol} - ${top.vault}: ${top.currentApy}% APY`,
             data: rates,
           };
         }
@@ -795,7 +795,7 @@ async function executeIntent(intent, address, options = {}) {
       case "help":
         return {
           success: true,
-          message: `HedgeMyLife Bot Commands:\n\n• deposit — Get your BitGo custodial deposit address\n• balance — Check your USDC balance\n• Long $300 ETH 3x — Open long\n• Short $200 BTC — Open short\n• Close position — Close all open positions\n• Hedge $500 against inflation — Yield Shield\n• Show my portfolio — Positions & shields\n• Analyze my wallet — Risk analysis (HeyElsa)\n• Yield / Where to earn — Yield suggestions\n• Leaderboard — Top traders\n• link 0xYourAddress — Use your own wallet instead\n\nAll trades settle on Base Sepolia with verifiable tx hashes.`,
+          message: `Aegis Bot Commands:\n\n• deposit — Get your BitGo custodial deposit address\n• balance — Check your USDC balance\n• Long $300 ETH 3x — Open long\n• Short $200 BTC — Open short\n• Close position — Close all open positions\n• Hedge $500 against inflation — Yield Shield\n• Show my portfolio — Positions & shields\n• Analyze my wallet — Risk analysis (HeyElsa)\n• Yield / Where to earn — Yield suggestions\n• Leaderboard — Top traders\n• link 0xYourAddress — Use your own wallet instead\n\nAll trades settle on-chain with verifiable tx hashes.`,
         };
 
       default:
@@ -834,7 +834,7 @@ async function getOrCreateCustodialWallet(phone) {
       error: "BitGo custodial wallets not configured. Use: link 0xYourAddress",
     };
   }
-  const label = `HML-${phone.replace(/\D/g, "").slice(-8)}`;
+  const label = `AGS-${phone.replace(/\D/g, "").slice(-8)}`;
   // Create a BitGo v3 agent wallet on hteth testnet, with forwarder + policy hash.
   const {
     walletId,

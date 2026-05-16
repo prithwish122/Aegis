@@ -22,7 +22,7 @@ export default function VaultPage() {
   const [userInfo, setUserInfo] = useState(null);
   const [serverStats, setServerStats] = useState(null);
 
-  // Read on-chain H-USDC balance
+  // Read on-chain A-USDC balance
   const { data: husdcBalance, refetch: refetchBalance } = useReadContract({
     address: HUSDC_ADDRESS,
     abi: HUSDC_ABI,

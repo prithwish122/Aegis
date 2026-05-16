@@ -181,7 +181,7 @@ export default function MarketDetailPage() {
           setTraderBalance(res.traderBalance ?? res.user?.traderBalance ?? 0);
         }).catch(() => {});
       }, 6000);
-      setSuccessMsg('Deposited 10,000 H-USDC to vault!');
+      setSuccessMsg('Deposited 10,000 A-USDC to vault!');
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err) {
       setError(err.shortMessage || err.message || 'Deposit failed');

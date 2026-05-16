@@ -4,6 +4,7 @@ import { ArrowRight, Shield, Plus, Check } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MARKETS } from "../data/mockData";
 import MarketIcon from "../components/MarketIcon";
+import CosmicBg from "../components/ui/CosmicBg";
 import logo from "../assets/aegis-mark.svg";
 
 /* ---------- Live price hook (asset ticker only) ---------- */
@@ -250,28 +251,8 @@ export default function LandingPage() {
 
       {/* ===================== HERO ===================== */}
       <section className="relative overflow-hidden pt-32 pb-20">
-        {/* Background grid lines */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.22]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(167,139,250,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(167,139,250,0.10) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            maskImage:
-              "radial-gradient(circle at 30% 20%, #000 0%, transparent 70%)",
-            WebkitMaskImage:
-              "radial-gradient(circle at 30% 20%, #000 0%, transparent 70%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute right-[-10%] top-[20%] h-[420px] w-[420px] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(0,229,212,0.10) 0%, transparent 70%)",
-          }}
-        />
-
-        <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 lg:grid-cols-[1.05fr_1fr]">
+        <CosmicBg />
+        <div className="relative z-10 mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 lg:grid-cols-[1.05fr_1fr]">
           {/* Left: claim */}
           <div>
             <div className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--t-text-dim)]">
@@ -475,10 +456,6 @@ export default function LandingPage() {
             {/* right half (terminal artifacts) */}
             <div
               className="relative bg-[var(--t-bg-secondary)] p-8 md:p-10 font-mono text-[12px] leading-[1.7] text-[var(--t-text-muted)]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, transparent 0%, transparent 35%, rgba(167,139,250,0.04) 100%)",
-              }}
             >
               <div className="mb-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--t-text-dim)]">
                 <span className="h-1 w-1 rounded-full bg-[var(--t-cyan)]" />
@@ -740,13 +717,6 @@ export default function LandingPage() {
 
       {/* ===================== CTA STRIP ===================== */}
       <section className="relative overflow-hidden border-y border-[var(--t-border)] py-20">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 80% 50%, rgba(0,229,212,0.10) 0%, transparent 55%), radial-gradient(circle at 20% 50%, rgba(167,139,250,0.12) 0%, transparent 55%)",
-          }}
-        />
         <div className="relative mx-auto max-w-[1100px] px-6">
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
             <div>

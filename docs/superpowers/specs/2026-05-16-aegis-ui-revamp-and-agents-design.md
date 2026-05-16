@@ -6,7 +6,7 @@
 
 Three intertwined deliverables on top of the existing Aegis.0G port:
 
-1. **Full UI revamp** — dark-first violet/cyan palette, zero footprint of the old PPN.fi white + blue theme.
+1. **Full UI revamp** — dark-first violet/cyan palette, zero footprint of the old white + blue theme.
 2. **Agent identity layer** — wallet-derived session keys that external agents (Claude / Cursor / custom) use to call Aegis APIs on a user's behalf. Multiple keys per user; create, list, revoke, rotate.
 3. **Per-asset Trade page** — chart on top, "Your agents on {ASSET}" feed below, with model/slug/invested/value/PnL columns.
 
@@ -136,7 +136,7 @@ Sections:
 ## 5. OpenClaw skill library
 
 Files (all in `openclaw-skill/`):
-- `aegis.skill.md` (rewrite as general entrypoint, replaces current hedgemylife-shield contents).
+- `aegis.skill.md` (rewrite as general entrypoint, replaces the previous shield contents).
 - `strategies/conservative-saver.skill.md`
 - `strategies/inflation-hedger.skill.md`
 - `strategies/momentum-shield.skill.md`

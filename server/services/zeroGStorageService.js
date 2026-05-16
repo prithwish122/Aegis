@@ -45,7 +45,16 @@ async function loadSdk() {
 }
 
 async function init() {
-  const network = (process.env.ZG_NETWORK || "testnet").toLowerCase();
+  // Storage runs against a separate network from the chain when ZG_STORAGE_NETWORK is set.
+  // Reason: 0G has no published mainnet Indexer URL we can rely on yet, so even if the
+  // dapp's contracts live on Aristotle mainnet we run the Storage SDK against testnet
+  // turbo. README documents this. To force Storage onto mainnet later, set
+  // ZG_STORAGE_NETWORK=mainnet.
+  const network = (
+    process.env.ZG_STORAGE_NETWORK ||
+    process.env.ZG_NETWORK ||
+    "testnet"
+  ).toLowerCase();
   const rpc = rpcForNetwork(network);
   const indexerUrl = process.env.ZG_INDEXER_URL || DEFAULT_INDEXER_URL;
   const rawKey = process.env.ZG_STORAGE_PRIVATE_KEY || process.env.RELAYER_PRIVATE_KEY;
@@ -83,7 +92,11 @@ function getInfo() {
   return {
     initialized,
     error: initError,
-    network: (process.env.ZG_NETWORK || "testnet").toLowerCase(),
+    network: (
+      process.env.ZG_STORAGE_NETWORK ||
+      process.env.ZG_NETWORK ||
+      "testnet"
+    ).toLowerCase(),
     indexer: process.env.ZG_INDEXER_URL || DEFAULT_INDEXER_URL,
     signer: signer ? signer.address : null,
   };
@@ -186,7 +199,12 @@ async function uploadShieldDoc(shieldData) {
       throw new Error(`merkleTree error: ${treeErr}`);
     }
 
-    const rpc = rpcForNetwork((process.env.ZG_NETWORK || "testnet").toLowerCase());
+    const network = (
+      process.env.ZG_STORAGE_NETWORK ||
+      process.env.ZG_NETWORK ||
+      "testnet"
+    ).toLowerCase();
+    const rpc = rpcForNetwork(network);
     const result = await indexer.upload(memData, rpc, signer);
 
     // upload returns [tx, err] tuple in starter kit; tx may be union shape

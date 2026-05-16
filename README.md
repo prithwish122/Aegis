@@ -257,13 +257,13 @@ Update `server/.env` and `client/.env.production` with the printed addresses. Re
 The following live in the repo but are **not** part of the demo or this submission:
 
 - Perp/trading routes (`server/routes/trade.js`, `MarketsPage`, `VaultPage`, `LeaderboardPage`).
-- BitGo custody / WhatsApp / Twilio / Parcl live price feeds — kept as in-repo plumbing from the original PPN.fi project.
+- BitGo custody / WhatsApp / Twilio / Parcl live price feeds — kept as in-repo plumbing from an earlier iteration of the codebase.
 - Live yield rates from DeFiLlama — projections use deterministic constants for the demo, transparently. Documented in `docs/aegis-architecture.md`.
 - ERC-7857 INFT (Agent ID) — designed but not deployed unless build time permits.
 
 ## Credits
 
-Built on the existing PPN.fi / HedgeMyLife codebase; ported and rebranded to the 0G stack for the 0G APAC Hackathon.
+Built for the 0G APAC Hackathon on the 0G stack.
 
 ---
 

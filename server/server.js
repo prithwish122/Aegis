@@ -95,7 +95,7 @@ async function startServer() {
 
   // Health check
   app.get('/', (req, res) => {
-    res.json({ status: 'ok', service: 'HedgeMyLife API', timestamp: Date.now() });
+    res.json({ status: 'ok', service: 'Aegis API', timestamp: Date.now() });
   });
 
   // BitGo custody endpoints
@@ -198,7 +198,7 @@ async function startServer() {
 
   // Start server
   server.listen(PORT, () => {
-    console.log(`[Server] HedgeMyLife API running on http://localhost:${PORT}`);
+    console.log(`[Server] Aegis API running on http://localhost:${PORT}`);
   });
 }
 

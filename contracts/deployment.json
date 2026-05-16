@@ -11,8 +11,8 @@
       "contracts": {
         "husdc": {
           "address": "0x17b9526493820C6EB04988433B9220B06e210a3e",
-          "name": "HedgeMyLife USD",
-          "symbol": "H-USDC",
+          "name": "Aegis USD",
+          "symbol": "A-USDC",
           "decimals": 6
         },
         "hedgeVault": {
@@ -21,7 +21,7 @@
           "relayer": "0x71AfE44200A819171a0687b1026E8d4424472Ff8"
         }
       },
-      "_note": "Original HedgeMyLife deployment. Aegis.0G port lives under ogTestnet / ogMainnet."
+      "_note": "Legacy Base Sepolia deployment. Aegis.0G lives under ogTestnet / ogMainnet."
     },
     "ogTestnet": {
       "network": "ogTestnet",

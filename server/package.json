@@ -1,5 +1,5 @@
 {
-  "name": "hedgemylife-server",
+  "name": "aegis-server",
   "version": "1.0.0",
   "engines": {
     "node": ">=24 <25"
@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "HedgeMyLife backend server",
+  "description": "Aegis backend server",
   "dependencies": {
     "@0gfoundation/0g-compute-ts-sdk": "^0.8.3",
     "@0gfoundation/0g-ts-sdk": "^1.2.8",

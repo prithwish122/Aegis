@@ -34,14 +34,14 @@ async function openPosition({ user, marketId, direction, margin, leverage, takeP
   // Calculate and apply open fee
   const openFee = feeEngine.calculateOpenFee(size);
 
-  // Check user balance (backed by H-USDC on Base Sepolia)
+  // Check user balance (backed by USDC on-chain)
   let userDoc = await User.findOne({ address: user.toLowerCase() });
   if (!userDoc || userDoc.traderBalance < margin + openFee) {
-    // Try to sync from on-chain H-USDC balance if available.
+    // Try to sync from on-chain USDC balance if available.
     if (husdcContract && user) {
       try {
         const rawBal = await husdcContract.balanceOf(user.toLowerCase());
-        const onchainBalance = Number(rawBal) / 1e6; // H-USDC has 6 decimals
+        const onchainBalance = Number(rawBal) / 1e6; // USDC has 6 decimals
         userDoc = await User.findOneAndUpdate(
           { address: user.toLowerCase() },
           {
@@ -53,7 +53,7 @@ async function openPosition({ user, marketId, direction, margin, leverage, takeP
           { upsert: true, returnDocument: 'after' }
         );
       } catch (err) {
-        console.warn('[PerpEngine] Could not sync H-USDC balance from chain:', err.message);
+        console.warn('[PerpEngine] Could not sync USDC balance from chain:', err.message);
       }
     }
   }

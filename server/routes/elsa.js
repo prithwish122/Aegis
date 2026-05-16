@@ -14,7 +14,7 @@ const heyelsaService = require('../services/heyelsaService');
  */
 router.get('/status', (req, res) => {
   res.json({
-    agent: 'HedgeMyLife Elsa',
+    agent: 'Aegis Elsa',
     heyelsa: heyelsaService.getInfo(),
     endpoints: {
       chat: 'POST /api/elsa/chat',

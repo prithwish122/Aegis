@@ -47,6 +47,8 @@ test-results/
 **/playwright-report/
 **/test-results/
 tests-e2e/node_modules/
+tests-e2e/recordings/
+tests-e2e/last-mainnet-flow.json
 
 # ─── Editor / OS ───────────────────────────────────────────────────────────
 .vscode/

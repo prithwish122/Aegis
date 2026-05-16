@@ -57,8 +57,7 @@
     --t-blue:  var(--t-violet);
     --t-green: var(--t-violet);
 
-    /* Tiles + soft surfaces */
-    --tile: rgba(167, 139, 250, 0.08);
+    /* Soft surfaces */
     --surface-soft: rgba(167, 139, 250, 0.06);
     --surface-soft-cyan: rgba(0, 229, 212, 0.06);
   }
@@ -74,9 +73,6 @@
     background-color: var(--t-bg);
     color: var(--t-text);
     min-height: 100vh;
-    background-image:
-      radial-gradient(circle at 12% 8%, rgba(123, 63, 240, 0.10) 0%, transparent 35%),
-      radial-gradient(circle at 88% 92%, rgba(0, 229, 212, 0.06) 0%, transparent 40%);
   }
 
   /* Sane defaults for primitives that inherited the old white look */

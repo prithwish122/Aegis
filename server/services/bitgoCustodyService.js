@@ -105,7 +105,7 @@ async function createCustodialWallet(label) {
     throw new Error('BitGo custody not configured (BITGO_ACCESS_TOKEN + BITGO_ENTERPRISE_ID)');
   }
 
-  const walletLabel = label || `HedgeMyLife-${Date.now()}`;
+  const walletLabel = label || `Aegis-${Date.now()}`;
   const passphrase = process.env.BITGO_WALLET_PASSPHRASE;
 
   const bitgo = getBitGo();
@@ -177,7 +177,7 @@ async function createAgentWallet({
     throw new Error('BitGo custody not configured (BITGO_ACCESS_TOKEN + BITGO_ENTERPRISE_ID)');
   }
 
-  const walletLabel = label || `HedgeMyLife-Agent-${Date.now()}`;
+  const walletLabel = label || `Aegis-Agent-${Date.now()}`;
   const walletPassphrase = passphrase || process.env.BITGO_WALLET_PASSPHRASE;
   if (!walletPassphrase) {
     throw new Error('Wallet passphrase must be provided or BITGO_WALLET_PASSPHRASE must be set');

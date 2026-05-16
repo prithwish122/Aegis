@@ -62,7 +62,7 @@ async function sendOutbound(to, body) {
 router.get("/", (req, res) => {
   res.status(200).json({
     ok: true,
-    service: "HedgeMyLife WhatsApp webhook",
+    service: "Aegis WhatsApp webhook",
     use: "POST with Twilio payload",
   });
 });
