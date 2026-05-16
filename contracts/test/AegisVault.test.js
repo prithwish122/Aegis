@@ -293,6 +293,75 @@ describe("Aegis.0G", function () {
   });
 
   // =================================================================
+  //  Ownership / relayer rotation
+  // =================================================================
+  describe("Ownership & relayer rotation", function () {
+    it("owner is the deployer; relayer is the constructor arg", async function () {
+      const { vault, owner, relayer } = await loadFixture(deployFixture);
+      expect(await vault.owner()).to.equal(owner.address);
+      expect(await vault.relayer()).to.equal(relayer.address);
+      expect(await vault.pendingOwner()).to.equal(ethers.ZeroAddress);
+    });
+
+    it("setRelayer: owner rotates the relayer; emits event", async function () {
+      const { vault, owner, relayer, user2 } = await loadFixture(deployFixture);
+      await expect(vault.connect(owner).setRelayer(user2.address))
+        .to.emit(vault, "RelayerChanged")
+        .withArgs(relayer.address, user2.address);
+      expect(await vault.relayer()).to.equal(user2.address);
+    });
+
+    it("setRelayer: reverts for non-owner / zero address", async function () {
+      const { vault, owner, relayer, user2 } = await loadFixture(deployFixture);
+      await expect(vault.connect(user2).setRelayer(user2.address))
+        .to.be.revertedWith("Only owner");
+      await expect(vault.connect(owner).setRelayer(ethers.ZeroAddress))
+        .to.be.revertedWith("relayer=0");
+    });
+
+    it("transferOwnership: two-step handover", async function () {
+      const { vault, owner, user2 } = await loadFixture(deployFixture);
+      await expect(vault.connect(owner).transferOwnership(user2.address))
+        .to.emit(vault, "OwnershipTransferStarted")
+        .withArgs(owner.address, user2.address);
+      expect(await vault.owner()).to.equal(owner.address); // still old until accepted
+      expect(await vault.pendingOwner()).to.equal(user2.address);
+
+      await expect(vault.connect(user2).acceptOwnership())
+        .to.emit(vault, "OwnershipTransferred")
+        .withArgs(owner.address, user2.address);
+      expect(await vault.owner()).to.equal(user2.address);
+      expect(await vault.pendingOwner()).to.equal(ethers.ZeroAddress);
+    });
+
+    it("acceptOwnership: only the pending owner can accept", async function () {
+      const { vault, owner, user1, user2 } = await loadFixture(deployFixture);
+      await vault.connect(owner).transferOwnership(user2.address);
+      await expect(vault.connect(user1).acceptOwnership())
+        .to.be.revertedWith("Not pending owner");
+    });
+
+    it("after relayer rotation, only new relayer can settle", async function () {
+      const { ausdc, vault, owner, relayer, user1, user2, unit } = await loadFixture(deployFixture);
+      const vaultAddr = await vault.getAddress();
+      const deposit = unit(100);
+      await ausdc.connect(user1).approve(vaultAddr, deposit);
+      const ASSET_GOLD = ethers.id("gold");
+      const ENTRY = 2050_00000000n;
+      const DUR = 90n * 24n * 3600n;
+      const ROOT = ethers.id("rot-fixture");
+      await vault.connect(user1).createShield(deposit, DUR, ASSET_GOLD, ENTRY, ROOT);
+      await time.increase(Number(DUR));
+
+      await vault.connect(owner).setRelayer(user2.address);
+      await expect(vault.connect(relayer).settleShield(user1.address, 0, ENTRY, 0))
+        .to.be.revertedWith("Only relayer");
+      await expect(vault.connect(user2).settleShield(user1.address, 0, ENTRY, 0))
+        .to.not.be.reverted;
+    });
+  });
+
+  // =================================================================
   //  Legacy perp surface — minimal smoke tests retained
   // =================================================================
   describe("Legacy perp surface", function () {

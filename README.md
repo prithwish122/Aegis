@@ -48,13 +48,13 @@ Any agent (Claude / Cursor / GPT / custom) can autodiscover Aegis with a couple 
 - **First `createShield` (smoke test)**: [`0x9383ad6d…57f7eb4`](https://chainscan-galileo.0g.ai/tx/0x9383ad6d9e1b6ebf7d73af5fb6f37f74788328f7c8cffec8804ccded157f7eb4) — emits `ShieldCreated(user=0x4523…15B5, idx=0, assetId=keccak256("gold"), deposit=100 A-USDC, duration=7,776,000s, entryPrice=$2050, rootHash=0x742c…cc38bd)`
 - **Deployer / relayer**: `0x4523095f3d872dD51aAB5c6428b513AF645C15B5`
 
-### 0G Aristotle Mainnet (chain id `16661`) — pending wallet funding
+### 0G Aristotle Mainnet (chain id `16661`) — live, end-to-end verified
 
-> Will be filled when the deployer wallet is funded with mainnet 0G. The deploy + smoke-test scripts are identical to testnet; just `--network ogMainnet` instead.
-
-- **AegisVault contract**: `__MAINNET_VAULT_ADDRESS__` — [view on chainscan](https://chainscan.0g.ai/address/__MAINNET_VAULT_ADDRESS__)
-- **AUSDC contract**: `__MAINNET_AUSDC_ADDRESS__` — [view on chainscan](https://chainscan.0g.ai/address/__MAINNET_AUSDC_ADDRESS__)
-- **First shield tx**: [view on chainscan](https://chainscan.0g.ai/tx/__SMOKE_TEST_TX__)
+- **AegisVault**: [`0x60403dd3CC683F65Db6dEb8597051aDc80506C3F`](https://chainscan.0g.ai/address/0x60403dd3CC683F65Db6dEb8597051aDc80506C3F) . deploy tx [`0xd52ad1c0…56913f`](https://chainscan.0g.ai/tx/0xd52ad1c0095210a4814c9b9baa00ea7be16655a3e63b0996a11c87c47656913f)
+- **AUSDC**: [`0xA3CD4843Fc8f2Af53fa4786b16F70c90BfecD2F2`](https://chainscan.0g.ai/address/0xA3CD4843Fc8f2Af53fa4786b16F70c90BfecD2F2) . deploy tx [`0x2a17704d…23dfffd`](https://chainscan.0g.ai/tx/0x2a17704d508b6304f1403a77b69c395aa5d05fae8c9c9407d1852bef823dfffd)
+- **First `createShield` on mainnet**: [`0x5657bf84…85bc130`](https://chainscan.0g.ai/tx/0x5657bf84d44f3711d4620a7957c26bf1cecd7de84aedee7ed9d49432085bc130) emits `ShieldCreated(user=0x4523…15B5, idx=0, assetId=keccak256("gold"), deposit=100 A-USDC, duration=7,776,000s, entryPrice=$2050, rootHash=0x742c…cc38bd)`
+- **Deployer / owner / relayer**: `0x4523095f3d872dD51aAB5c6428b513AF645C15B5`
+- **Ownership controls**: `setRelayer(addr)` and `transferOwnership(addr) → acceptOwnership()` are on `AegisVault` so the relayer key can be rotated and ownership can be handed off without redeploy.
 
 A full machine-readable `deployment.json` (testnet + mainnet under `networks.*`) lives at `contracts/deployment.json`.
 

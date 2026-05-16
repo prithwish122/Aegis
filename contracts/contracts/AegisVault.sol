@@ -21,6 +21,8 @@ contract AegisVault {
     // --- State ---
     IERC20 public ausdcToken;
     address public relayer;
+    address public owner;
+    address public pendingOwner;
     uint256 public currentEpoch;
     uint256 public lastEpochTime;
     uint256 public constant EPOCH_DURATION = 7 days;
@@ -72,6 +74,11 @@ contract AegisVault {
     event FeeCollected(address indexed trader, uint256 feeAmount);
     event EpochAdvanced(uint256 newEpoch, uint256 timestamp);
 
+    // Ownership / relayer rotation
+    event RelayerChanged(address indexed previous, address indexed next);
+    event OwnershipTransferStarted(address indexed previous, address indexed pending);
+    event OwnershipTransferred(address indexed previous, address indexed next);
+
     // Shield
     event ShieldCreated(
         address indexed user,
@@ -95,12 +102,44 @@ contract AegisVault {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner");
+        _;
+    }
+
     // --- Constructor ---
     constructor(address _ausdcToken, address _relayer) {
+        require(_ausdcToken != address(0), "ausdc=0");
+        require(_relayer != address(0), "relayer=0");
         ausdcToken = IERC20(_ausdcToken);
         relayer = _relayer;
+        owner = msg.sender;
         currentEpoch = 1;
         lastEpochTime = block.timestamp;
+    }
+
+    // --- Ownership / relayer rotation ---
+    /// @notice Owner rotates the relayer key. Critical for ops continuity if the relayer is compromised.
+    function setRelayer(address newRelayer) external onlyOwner {
+        require(newRelayer != address(0), "relayer=0");
+        address prev = relayer;
+        relayer = newRelayer;
+        emit RelayerChanged(prev, newRelayer);
+    }
+
+    /// @notice Start a two-step ownership handover. Use the zero address to cancel a pending transfer.
+    function transferOwnership(address newOwner) external onlyOwner {
+        pendingOwner = newOwner;
+        emit OwnershipTransferStarted(owner, newOwner);
+    }
+
+    /// @notice Pending owner accepts the handover.
+    function acceptOwnership() external {
+        require(msg.sender == pendingOwner, "Not pending owner");
+        address prev = owner;
+        owner = pendingOwner;
+        pendingOwner = address(0);
+        emit OwnershipTransferred(prev, owner);
     }
 
     // =====================================================================

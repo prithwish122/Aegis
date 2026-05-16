@@ -3,7 +3,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { truncateAddress } from '../../lib/utils';
 import StarBorder from '../ui/StarBorder';
-import logo from '../../assets/aegis-logo.png';
+import logo from '../../assets/aegis-mark.svg';
 
 const NAV_ITEMS = [
   { to: '/app/shield', label: 'Shield', icon: '\u25C8' },
