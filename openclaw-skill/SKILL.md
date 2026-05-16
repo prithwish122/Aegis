@@ -55,8 +55,39 @@ All at `$AEGIS_API_URL`. JSON bodies; same headers above on every call.
 - `POST /api/ai/recommend-shield` — `{ concern: string, depositAmount?: number, durationMonths?: number }` → returns `{ recommendation: { asset, reason, providerUsed, teeVerified, teeProviderAddress, teeModel, teeChatId, projection } }`. **Use this when you need to pick an asset to hedge.**
 - `POST /api/yield-shield/simulate` — `{ depositAmount, asset, durationMonths }` → projection table.
 - `POST /api/yield-shield/prepare` — `{ address, depositAmount, asset, durationMonths, teeInferenceSignature?, teeInferenceProvider?, teeInferenceModel? }` → returns `prepare: { rootHash, storageProvider, storageTxHash, assetIdBytes32, entryPriceScaled, durationSeconds, depositBaseUnits, … }`. **Call this immediately before submitting the on-chain `createShield` tx so the doc is in 0G Storage with a real rootHash.**
-- (On-chain) **You** submit the `AegisVault.createShield` tx using your own wallet/private key. Aegis does **not** custody or sign for you. The contract is `VAULT_CONTRACT_ADDRESS` on chain `16661` (Aristotle) / `16602` (Galileo testnet).
-- `POST /api/yield-shield/activate` — `{ address, depositAmount, asset, durationMonths, prepare, onChainTxHash, onChainIdx, teeInference* }` → persists the Shield record so it shows up in the user's portfolio + your action feed.
+- (On-chain) **You** submit the `AegisVault.createShield` tx using your own wallet/private key. Aegis does **not** custody or sign for you.
+
+  **Mainnet (chain 16661):**
+  - `AegisVault` = `0x60403dd3CC683F65Db6dEb8597051aDc80506C3F`
+  - `AUSDC`      = `0xA3CD4843Fc8f2Af53fa4786b16F70c90BfecD2F2`
+  - RPC `https://evmrpc.0g.ai`, explorer `https://chainscan.0g.ai`.
+
+  **Testnet (Galileo, chain 16602):** identical addresses redeployed; RPC `https://evmrpc-testnet.0g.ai`, explorer `https://chainscan-galileo.0g.ai`. Always confirm via `GET /api/sponsors/zerog` which network the dapp is configured for and read the addresses from there at runtime.
+
+  Standard on-chain sequence using `ethers`:
+  1. (Optional, test economics only) `AUSDC.faucet(yourAddress, amount)` if your A-USDC balance is below `depositBaseUnits`.
+  2. `AUSDC.approve(vaultAddress, depositBaseUnits)` — must succeed before createShield can pull the funds.
+  3. `AegisVault.createShield(deposit, durationSeconds, assetIdBytes32, entryPriceScaled, rootHash)` returns `uint256 idx` and emits the `ShieldCreated` event. Parse the event log for `idx` (it's `topics[2]` on the standard Aegis ABI).
+
+- `POST /api/yield-shield/activate` — persists the Shield record so it shows up in the user's portfolio + your action feed. Pass back the full `prepare` object verbatim plus the on-chain confirmation and any inference proof. Schema:
+
+  ```json
+  {
+    "address":               "0x… (the user's wallet)",
+    "depositAmount":          75,
+    "asset":                 "re_nyc",
+    "durationMonths":         6,
+    "prepare":               { /* the entire object returned by /prepare */ },
+    "onChainTxHash":         "0x… (your createShield tx)",
+    "onChainIdx":             2,
+    "teeInferenceSignature":  "<recommendation.teeChatId or null>",
+    "teeInferenceProvider":   "<recommendation.teeProviderAddress or null>",
+    "teeInferenceModel":      "<recommendation.teeModel or null>",
+    "teeInferenceVerified":    true
+  }
+  ```
+
+  Any `teeInference*` field can be `null` if NIM or OpenAI served the inference (fallbacks return no TEE attestation; be honest about this in the user-facing summary).
 
 ## Standard flow
 
