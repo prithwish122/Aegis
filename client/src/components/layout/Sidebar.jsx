@@ -3,6 +3,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { truncateAddress } from '../../lib/utils';
 import StarBorder from '../ui/StarBorder';
+import AddTokenButton from '../AddTokenButton';
 import logo from '../../assets/aegis-mark.svg';
 
 const NAV_ITEMS = [
@@ -82,6 +83,15 @@ export default function Sidebar() {
             );
           }}
         </ConnectButton.Custom>
+        {isConnected && (
+          <div className="mt-2">
+            <AddTokenButton
+              variant="compact"
+              className="w-full justify-center"
+              label="+ A-USDC to wallet"
+            />
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -7,6 +7,7 @@ import { MARKETS } from '../data/markets';
 import { formatPrice, formatPercent, formatDuration } from '../lib/utils';
 import WalletGate from '../components/WalletGate';
 import MarketIcon from '../components/MarketIcon';
+import AddTokenButton from '../components/AddTokenButton';
 
 function ShieldRow({ shield, prices, onSettle }) {
   const market = MARKETS.find((m) => m.id === shield.asset);
@@ -234,13 +235,16 @@ export default function PortfolioPage() {
   return (
     <WalletGate>
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
-          <h1 className="t-section text-xl font-bold uppercase tracking-[0.1em]">
-            Portfolio
-          </h1>
-          <p className="text-xs text-[var(--t-text-muted)] mt-1">
-            Manage your active shields and trading positions.
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="t-section text-xl font-bold uppercase tracking-[0.1em]">
+              Portfolio
+            </h1>
+            <p className="text-xs text-[var(--t-text-muted)] mt-1">
+              Manage your active shields and trading positions.
+            </p>
+          </div>
+          <AddTokenButton />
         </div>
 
         {/* Simple portfolio summary – like Polymarket overview */}
@@ -262,10 +266,15 @@ export default function PortfolioPage() {
                   const livePrice = prices[s.asset]?.price;
                   const entryPrice = s.entryPrice;
                   const exposure = s.exposureBudget || 0;
-                  const pnl =
-                    livePrice && entryPrice
-                      ? ((livePrice - entryPrice) / entryPrice) * exposure
-                      : (s.positionId?.unrealizedPnl ?? 0);
+                  // Match ShieldRow: clamp to ±exposure and reject degenerate
+                  // entry prices so an old corrupt row can't blow up the sum.
+                  let pnl;
+                  if (livePrice && entryPrice && entryPrice >= 0.5) {
+                    const raw = ((livePrice - entryPrice) / entryPrice) * exposure;
+                    pnl = Math.max(-exposure, Math.min(exposure, raw));
+                  } else {
+                    pnl = s.positionId?.unrealizedPnl ?? 0;
+                  }
                   return sum + (pnl || 0);
                 }, 0);
                 const tradePnl = tradesExcludingShields.reduce((sum, p) => {
