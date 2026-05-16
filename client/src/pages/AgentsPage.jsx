@@ -237,24 +237,8 @@ function AgentsPageInner() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-[var(--t-border)] bg-[var(--t-panel)] p-5">
-        <h3 className="text-xs uppercase tracking-[0.18em] mb-3">How to use a key</h3>
-        <p className="text-sm text-[var(--t-text-muted)] mb-3">
-          Load the Aegis.0G OpenClaw skill in your agent (Claude, Cursor, etc.) and set:
-        </p>
-        <pre className="font-mono text-xs bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-3 overflow-x-auto whitespace-pre">{`AEGIS_API_URL    = ${typeof window !== 'undefined' ? window.location.origin : 'https://aegis.0g.ai'}
-AEGIS_SESSION_KEY = aegis_sk_<your key>
+      <UseKeyBlock />
 
-# Every request your agent makes:
-Authorization: Bearer $AEGIS_SESSION_KEY
-X-Agent-Slug:  conservative-saver   # or one you wrote
-X-Agent-Model: claude-opus-4.7
-X-Agent-Name:  My Treasury Bot`}</pre>
-        <p className="text-xs text-[var(--t-text-muted)] mt-3">
-          Skill files live in this repo at <span className="font-mono">openclaw-skill/</span>. The entrypoint is{' '}
-          <span className="font-mono text-[var(--t-violet)]">aegis-0g</span>; it links to 5 strategy skills.
-        </p>
-      </div>
 
       {revealed && (
         <RevealOnce
@@ -262,6 +246,173 @@ X-Agent-Name:  My Treasury Bot`}</pre>
           onClose={() => setRevealed(null)}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * "How to use a key" block. Paste a session key, the page builds the full
+ * integrator config + curl + the agent-bootstrap prompt the user can drop
+ * straight into Claude / Cursor / GPT. Nothing is sent to the server; the
+ * paste is purely local string templating.
+ */
+function UseKeyBlock() {
+  const [pastedKey, setPastedKey] = useState('');
+  const [slug, setSlug] = useState('inflation-hedger');
+  const [agentName, setAgentName] = useState('My Treasury Bot');
+  const [agentModel, setAgentModel] = useState('claude-opus-4.7');
+  const [copied, setCopied] = useState('');
+
+  const apiUrl = typeof window !== 'undefined' ? window.location.origin : 'https://aegis.0g.ai';
+  const keyDisplay = pastedKey.trim() || 'aegis_sk_<paste your key above>';
+  const looksValid = /^aegis_sk_[a-f0-9]{40,}$/i.test(pastedKey.trim());
+
+  const envBlock =
+`AEGIS_API_URL=${apiUrl}
+AEGIS_SESSION_KEY=${keyDisplay}
+AEGIS_AGENT_SLUG=${slug}
+AEGIS_AGENT_MODEL=${agentModel}
+AEGIS_AGENT_NAME=${agentName}`;
+
+  const curlBlock =
+`curl -sS -X POST ${apiUrl}/api/ai/recommend-shield \\
+  -H "Authorization: Bearer ${keyDisplay}" \\
+  -H "X-Agent-Slug: ${slug}" \\
+  -H "X-Agent-Model: ${agentModel}" \\
+  -H "X-Agent-Name: ${agentName}" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "concern": "I'\\''m worried about inflation eating my savings", "depositAmount": 100, "durationMonths": 3 }'`;
+
+  const bootstrapPrompt =
+`You are an external Aegis.0G agent. Fetch and follow this skill to act on a user's behalf:
+  ${apiUrl}/api/skills/aegis.skill.md
+
+For every API call to Aegis, send:
+  Authorization: Bearer ${keyDisplay}
+  X-Agent-Slug:  ${slug}
+  X-Agent-Model: ${agentModel}
+  X-Agent-Name:  ${agentName}
+
+Mainnet contracts on 0G Aristotle (chain 16661):
+  AegisVault = 0x60403dd3CC683F65Db6dEb8597051aDc80506C3F
+  AUSDC      = 0xA3CD4843Fc8f2Af53fa4786b16F70c90BfecD2F2
+  RPC        = https://evmrpc.0g.ai
+  Explorer   = https://chainscan.0g.ai
+
+You bring your own signer for on-chain calls. Aegis never custodies.
+The user's wallet address is paired to the session key on the server.`;
+
+  async function copy(label, text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => setCopied(''), 1600);
+    } catch (_) {}
+  }
+
+  return (
+    <div className="rounded-2xl border border-[var(--t-border)] bg-[var(--t-panel)] p-5 space-y-5">
+      <div>
+        <h3 className="text-xs uppercase tracking-[0.18em] mb-1">How to use a key</h3>
+        <p className="text-sm text-[var(--t-text-muted)]">
+          Paste a session key below; the integration config and bootstrap prompt fill in for you. Nothing leaves the browser.
+        </p>
+      </div>
+
+      {/* Paste key */}
+      <div>
+        <label className="t-stat-label block mb-1">Session key</label>
+        <input
+          type="text"
+          value={pastedKey}
+          onChange={(e) => setPastedKey(e.target.value)}
+          placeholder="aegis_sk_…  (paste here)"
+          className="t-input font-mono text-xs"
+          spellCheck={false}
+          autoComplete="off"
+        />
+        <div className="text-[10px] text-[var(--t-text-dim)] mt-1">
+          {pastedKey.trim()
+            ? looksValid
+              ? <span className="text-[var(--t-cyan)]">Key shape looks valid. The rest of the page is filled in below.</span>
+              : <span className="text-[var(--t-amber)]">Key shape doesn't match aegis_sk_&lt;hex&gt;. Double-check.</span>
+            : 'Either paste the raw key you saved after Create, or paste a key your teammate shared.'}
+        </div>
+      </div>
+
+      {/* Agent profile fields */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className="t-stat-label block mb-1">X-Agent-Slug</label>
+          <select
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            className="t-input"
+          >
+            <option value="conservative-saver">conservative-saver</option>
+            <option value="inflation-hedger">inflation-hedger</option>
+            <option value="momentum-shield">momentum-shield</option>
+            <option value="balanced">balanced</option>
+            <option value="aggressive">aggressive</option>
+          </select>
+        </div>
+        <div>
+          <label className="t-stat-label block mb-1">X-Agent-Model</label>
+          <input
+            value={agentModel}
+            onChange={(e) => setAgentModel(e.target.value)}
+            className="t-input font-mono text-xs"
+            placeholder="claude-opus-4.7"
+          />
+        </div>
+        <div>
+          <label className="t-stat-label block mb-1">X-Agent-Name</label>
+          <input
+            value={agentName}
+            onChange={(e) => setAgentName(e.target.value)}
+            className="t-input text-xs"
+            placeholder="My Treasury Bot"
+          />
+        </div>
+      </div>
+
+      {/* Env block */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="t-stat-label">1. Environment</span>
+          <button type="button" className="t-btn t-btn-ghost text-[10px] py-1 px-2" onClick={() => copy('env', envBlock)}>
+            {copied === 'env' ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+        <pre className="font-mono text-xs bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-3 overflow-x-auto whitespace-pre">{envBlock}</pre>
+      </div>
+
+      {/* Bootstrap prompt for agent */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="t-stat-label">2. Agent bootstrap prompt</span>
+          <button type="button" className="t-btn t-btn-ghost text-[10px] py-1 px-2" onClick={() => copy('prompt', bootstrapPrompt)}>
+            {copied === 'prompt' ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+        <pre className="font-mono text-xs bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">{bootstrapPrompt}</pre>
+        <p className="text-[10px] text-[var(--t-text-dim)] mt-1">
+          Drop this into Claude / Cursor / GPT. The agent will fetch the skill manifest at{' '}
+          <a href={`${apiUrl}/api/skills/aegis.skill.md`} target="_blank" rel="noreferrer noopener" className="font-mono text-[var(--t-violet)] hover:underline">/api/skills/aegis.skill.md</a>{' '}
+          and self-bootstrap the rest.
+        </p>
+      </div>
+
+      {/* curl example */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="t-stat-label">3. Sanity-check the key from your terminal</span>
+          <button type="button" className="t-btn t-btn-ghost text-[10px] py-1 px-2" onClick={() => copy('curl', curlBlock)}>
+            {copied === 'curl' ? '✓ Copied' : 'Copy'}
+          </button>
+        </div>
+        <pre className="font-mono text-xs bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-3 overflow-x-auto whitespace-pre">{curlBlock}</pre>
+      </div>
     </div>
   );
 }
