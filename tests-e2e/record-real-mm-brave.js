@@ -65,6 +65,30 @@ function findBraveUserDataDir() {
   return null;
 }
 
+/**
+ * Resolve a friendly profile name (e.g. "Work") to its on-disk directory
+ * ("Default", "Profile 1", "Profile 7"). Chromium stores the mapping in
+ * `<UserData>/Local State` under `profile.info_cache.<dir>.name`.
+ * Returns null if the friendly name isn't found.
+ */
+function resolveProfileDir(userDataDir, friendlyName) {
+  if (!friendlyName) return null;
+  try {
+    const ls = JSON.parse(fs.readFileSync(path.join(userDataDir, 'Local State'), 'utf8'));
+    const cache = ls?.profile?.info_cache || {};
+    const target = friendlyName.toLowerCase();
+    for (const [dir, meta] of Object.entries(cache)) {
+      const candidates = [meta.name, meta.shortcut_name, meta.gaia_name, meta.user_name];
+      if (candidates.some((c) => c && String(c).toLowerCase() === target)) {
+        return dir;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not read Local State to resolve profile name:', e.message);
+  }
+  return null;
+}
+
 async function pause(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 async function smoothScroll(page, totalMs, dy) {
@@ -122,11 +146,18 @@ async function waitForPageCloseOrTimeout(context, label, timeoutMs = 120_000) {
   const exe = findBraveExecutable();
   const profile = findBraveUserDataDir();
 
+  // Profile selection. Defaults to "Work" if present, falls back to whatever
+  // Default-named profile loads when no arg is passed.
+  const friendlyName = process.env.BRAVE_PROFILE_NAME || 'Work';
+  const profileDir = profile ? resolveProfileDir(profile, friendlyName) : null;
+
   console.log('========================================');
   console.log(' Aegis.0G real-MetaMask recording (Brave)');
   console.log('========================================');
   console.log('Brave exe        :', exe || '(not found)');
   console.log('Brave User Data  :', profile || '(not found)');
+  console.log('Profile name     :', friendlyName);
+  console.log('Profile dir      :', profileDir || '(default — name not found)');
   console.log('Output dir       :', REC_DIR);
   console.log('');
 
@@ -157,9 +188,18 @@ async function waitForPageCloseOrTimeout(context, label, timeoutMs = 120_000) {
         '--no-first-run',
         '--no-default-browser-check',
         '--disable-blink-features=AutomationControlled',
+        ...(profileDir ? [`--profile-directory=${profileDir}`] : []),
       ],
       recordVideo:       { dir: REC_DIR, size: { width: 1366, height: 768 } },
-      ignoreDefaultArgs: ['--enable-automation'],
+      // Override Playwright's defaults that suppress extensions. Without this
+      // override, `--disable-extensions` strips MetaMask and the dapp sees
+      // no window.ethereum at all (page goes blank past the WalletGate).
+      ignoreDefaultArgs: [
+        '--enable-automation',
+        '--disable-extensions',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-default-apps',
+      ],
     });
   } catch (err) {
     console.error('Could not launch Brave. Most common cause: Brave is still running and');
